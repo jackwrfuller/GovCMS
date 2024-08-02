@@ -27,7 +27,7 @@ jobs:
           echo "Current branch is ${GITHUB_REF}"
           B_VERSION=$(echo $GITHUB_REF | cut -d '/' -f 5)
           echo "Branch version is set to ${B_VERSION}"
-          if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
+          if [ "$G_VERSION" != "$B_VERSION" ]; then
             echo "GovCMS and Branch versions are not equal."
             exit 1
           fi
