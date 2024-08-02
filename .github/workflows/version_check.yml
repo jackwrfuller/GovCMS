@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Get GovCMS version
         id: getGovcmsVersion
         uses: mikefarah/yq@master
@@ -23,10 +24,11 @@ jobs:
         id: getBranchVersion
         with:
           cmd: echo $GITHUB_REF | cut -d '/' -f 3
-      - run: |
-         G_VERSION="${{ steps.getGovcmsVersion.output.result }}"
-         B_VERSION="${{ steps.getBranchVersion.output.result }}"
-         if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
-           echo "GovCMS and Branch versions are not equal."
-           exit 1
-         fi
+      - name: Check branch and govcms version are equal
+        run: |
+          G_VERSION="${{ steps.getGovcmsVersion.output.result }}"
+          B_VERSION="${{ steps.getBranchVersion.output.result }}"
+          if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
+            echo "GovCMS and Branch versions are not equal."
+            exit 1
+          fi
