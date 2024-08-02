@@ -23,7 +23,9 @@ jobs:
       - name: Check branch and govcms version are equal
         run: |
           G_VERSION="${{ steps.getGovcmsVersion.output.result }}"
+          echo "GovCMS version defined as ${G_VERSION}"
           B_VERSION=$(echo $GITHUB_REF | cut -d '/' -f 3)
+          echo "Branch version is set to ${B_VERSION}"
           if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
             echo "GovCMS and Branch versions are not equal."
             exit 1
