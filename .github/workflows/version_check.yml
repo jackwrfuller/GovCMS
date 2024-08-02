@@ -24,6 +24,7 @@ jobs:
         run: |
           G_VERSION="${{ steps.getGovcmsVersion.output.result }}"
           echo "GovCMS version defined as ${G_VERSION}"
+          echo "Current branch is ${GITHUB_REF}"
           B_VERSION=$(echo $GITHUB_REF | cut -d '/' -f 3)
           echo "Branch version is set to ${B_VERSION}"
           if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
