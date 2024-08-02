@@ -2,13 +2,27 @@ name: GovCMS release version check
 
 on:
   push:
-    branches: 'release/3.x/3.[0-9]+.[0-9]+'
+    branches: 'release/**'
 
 permissions:
   contents: read
 
 
 jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check release branch name format
+        run: |
+          if [[ "$GITHUB_REF" =~ ^ref\/head\/release\/(\d).x\/\1.\d+.\d+ ]];
+          then
+            echo "Correct release branch name format"
+          else
+            echo "Incorrect release branch name format"
+            exit 1
+          fi
+
   check-version:
     runs-on: ubuntu-latest
 
