@@ -1,0 +1,32 @@
+name: GovCMS release version check
+
+on:
+  push:
+    branches: 'release/3.x/3.[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get GovCMS version
+        id: getGovcmsVersion
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.version' 'govcms.info.yml'
+      - name: Get branch version
+        id: getBranchVersion
+        with:
+          cmd: echo $GITHUB_REF | cut -d '/' -f 3
+      - run: |
+        if [ ${{ steps.getGovcmsVersion.output.result }} -eq ${{ steps.getBranchVersion.output.result }} ]; then
+          echo "GovCMS and Branch versions are not equal."
+          exit 1
+        fi
+
+
