@@ -24,9 +24,9 @@ jobs:
         with:
           cmd: echo $GITHUB_REF | cut -d '/' -f 3
       - run: |
-        if [ "${{ steps.getGovcmsVersion.output.result }}" -eq "${{ steps.getBranchVersion.output.result }}" ]; then
-          echo "GovCMS and Branch versions are not equal."
-          exit 1
-        fi
-
-
+         G_VERSION="${{ steps.getGovcmsVersion.output.result }}"
+         B_VERSION="${{ steps.getBranchVersion.output.result }}"
+         if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
+           echo "GovCMS and Branch versions are not equal."
+           exit 1
+         fi
