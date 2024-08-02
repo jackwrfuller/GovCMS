@@ -20,14 +20,10 @@ jobs:
         uses: mikefarah/yq@master
         with:
           cmd: yq '.version' 'govcms.info.yml'
-      - name: Get branch version
-        id: getBranchVersion
-        with:
-          cmd: echo $GITHUB_REF | cut -d '/' -f 3
       - name: Check branch and govcms version are equal
         run: |
           G_VERSION="${{ steps.getGovcmsVersion.output.result }}"
-          B_VERSION="${{ steps.getBranchVersion.output.result }}"
+          B_VERSION=$(echo $GITHUB_REF | cut -d '/' -f 3)
           if [[ "$G_VERSION" -ne "$B_VERSION" ]]; then
             echo "GovCMS and Branch versions are not equal."
             exit 1
