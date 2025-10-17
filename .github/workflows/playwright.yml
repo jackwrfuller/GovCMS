@@ -22,7 +22,7 @@ jobs:
 
       - name: Clone test repo
         run: |
-          git clone https://github.com/jackwrfuller/govcms-testing.git tests
+          git clone https://github.com/jackwrfuller/govcms-testing.git playwright-tests
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -30,11 +30,11 @@ jobs:
           node-version: '18'
 
       - name: Install Playwright dependencies
-        working-directory: tests
+        working-directory: playwright-tests
         run: npm ci
 
       - name: Run Playwright tests
-        working-directory: tests
+        working-directory: playwright-tests
         run: npx playwright test
         env:
           BASE_URL: ${{ env.BASE_URL }}
