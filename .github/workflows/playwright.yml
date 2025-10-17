@@ -33,7 +33,11 @@ jobs:
         working-directory: playwright-tests
         run: |
           npm ci
-          npx playwright install
+
+      - name: Install Playwright Browsers
+        uses: microsoft/playwright-github-action@v1
+        with:
+          working-directory: playwright-tests
 
       - name: Run Playwright tests
         working-directory: playwright-tests
