@@ -3,9 +3,7 @@ name: Playwright E2E Tests
 on:
   pull_request:
     branches:
-      - main
-      - develop
-      - '**'
+      - 4.x-develop
 
 jobs:
   playwright:
