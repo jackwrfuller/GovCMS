@@ -18,7 +18,7 @@ jobs:
 
       - name: Install and build GovCMS
         run: |
-          ahoy build && ahoy up
+          docker compose up -d --build
 
       - name: Clone test repo
         run: |
