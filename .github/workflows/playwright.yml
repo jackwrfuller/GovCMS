@@ -31,7 +31,9 @@ jobs:
 
       - name: Install Playwright dependencies
         working-directory: playwright-tests
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install
 
       - name: Run Playwright tests
         working-directory: playwright-tests
