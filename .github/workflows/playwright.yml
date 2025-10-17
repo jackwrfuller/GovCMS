@@ -1,0 +1,53 @@
+name: Playwright E2E Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - '**'
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+
+    env:
+      BASE_URL: https://localhost:8888
+
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install and build app
+        run: |
+          npm ci
+          npm run build
+          npm run start &
+          sleep 10
+
+      - name: Clone test repo
+        run: |
+          git clone https://github.com/jackwrfuller/govcms-testing.git tests
+
+      - name: Install test dependencies
+        working-directory: tests
+        run: npm ci
+
+      - name: Run Playwright tests
+        working-directory: tests
+        run: npx playwright test
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/playwright-report
+
