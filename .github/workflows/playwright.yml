@@ -16,23 +16,20 @@ jobs:
       - name: Checkout app repo
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install and build app
+      - name: Install and build GovCMS
         run: |
-          npm ci
-          npm run build
-          npm run start &
-          sleep 10
+          ahoy build && ahoy up
 
       - name: Clone test repo
         run: |
           git clone https://github.com/jackwrfuller/govcms-testing.git tests
 
-      - name: Install test dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Playwright dependencies
         working-directory: tests
         run: npm ci
 
@@ -48,4 +45,5 @@ jobs:
         with:
           name: playwright-report
           path: tests/playwright-report
+
 
