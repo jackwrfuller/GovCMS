@@ -22,17 +22,26 @@ jobs:
       - name: Build and start containers
         run: docker compose up -d --build
 
+      - name: Wait for database
+        run: |
+          for i in $(seq 1 30); do
+            if docker compose exec -T mariadb mariadb -udrupal -pdrupal -e "SELECT 1" drupal > /dev/null 2>&1; then
+              echo "Database is ready"
+              exit 0
+            fi
+            echo "Waiting for database... ($i/30)"
+            sleep 2
+          done
+          echo "Database failed to respond"
+          docker compose logs mariadb
+          exit 1
+
       - name: Install Drupal site
         run: |
-          docker compose exec -T govcms bash -c '
-            until mysqladmin ping -h mariadb --silent 2>/dev/null; do
-              echo "Waiting for database..."
-              sleep 2
-            done
-            drush site:install govcms --db-url=mysql://drupal:drupal@mariadb/drupal \
-              --account-name=admin --account-pass=admin \
-              --site-name="GovCMS" -y
-          '
+          docker compose exec -T govcms drush site:install govcms \
+            --db-url=mysql://drupal:drupal@mariadb/drupal \
+            --account-name=admin --account-pass=admin \
+            --site-name="GovCMS" -y
 
       - name: Wait for site to respond
         run: |
@@ -45,6 +54,7 @@ jobs:
             sleep 2
           done
           echo "Site failed to respond"
+          docker compose logs govcms
           exit 1
 
       - name: Clone test repo
