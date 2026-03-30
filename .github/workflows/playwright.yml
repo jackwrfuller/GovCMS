@@ -8,38 +8,84 @@ on:
 jobs:
   playwright:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     env:
       BASE_URL: http://localhost:8888
+      DRUPAL_USER: admin
+      DRUPAL_PASS: admin
 
     steps:
       - name: Checkout app repo
         uses: actions/checkout@v4
 
-      - name: Install and build GovCMS
+      - name: Build and start containers
+        run: docker compose up -d --build
+
+      - name: Install Drupal site
         run: |
-          docker compose up -d --build
+          docker compose exec -T govcms bash -c '
+            until mysqladmin ping -h mariadb --silent 2>/dev/null; do
+              echo "Waiting for database..."
+              sleep 2
+            done
+            drush site:install govcms --db-url=mysql://drupal:drupal@mariadb/drupal \
+              --account-name=admin --account-pass=admin \
+              --site-name="GovCMS" -y
+          '
+
+      - name: Wait for site to respond
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8888/ > /dev/null 2>&1; then
+              echo "Site is ready"
+              exit 0
+            fi
+            echo "Waiting for site... ($i/30)"
+            sleep 2
+          done
+          echo "Site failed to respond"
+          exit 1
 
       - name: Clone test repo
         run: |
-          git clone https://github.com/jackwrfuller/govcms-testing.git playwright-tests
+          git clone --depth 1 https://github.com/jackwrfuller/govcms-testing.git playwright-tests
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
-      - name: Install Playwright dependencies
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: playwright-tests/node_modules
+          key: npm-${{ hashFiles('playwright-tests/package-lock.json') }}
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('playwright-tests/package-lock.json') }}
+
+      - name: Install dependencies
         working-directory: playwright-tests
-        run: |
-          npm ci
-          npx playwright install --with-deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: playwright-tests
+        run: npx playwright install --with-deps
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: playwright-tests
+        run: npx playwright install-deps
 
       - name: Run Playwright tests
         working-directory: playwright-tests
         run: npx playwright test
-        env:
-          BASE_URL: ${{ env.BASE_URL }}
 
       - name: Upload Playwright report
         if: always()
@@ -48,4 +94,6 @@ jobs:
           name: playwright-report
           path: playwright-tests/playwright-report
 
-
+      - name: Print container logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
